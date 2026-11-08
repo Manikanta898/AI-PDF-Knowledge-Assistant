@@ -24,8 +24,7 @@ print("FAISS vector store loaded successfully!")
 
 
 # Step 2: Define the user's question.
-query = "Which algorithm combines multiple decision trees?"
-
+query = "Who invented the telephone?"
 
 # Step 3: Retrieve the three most relevant document chunks.
 results = search_similar_chunks(
