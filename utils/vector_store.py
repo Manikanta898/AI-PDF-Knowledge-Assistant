@@ -17,39 +17,38 @@ from langchain_community.vectorstores import FAISS
 from utils.embeddings import get_embedding_model
 
 
+
 def create_vector_store(chunks):
     """
-    Convert document chunks into embeddings and
-    store them in a FAISS vector index.
+    Generate embeddings for document chunks and store them
+    in FAISS while preserving their metadata.
 
     Args:
         chunks (list):
-            List of text chunks extracted from a PDF.
+            List of LangChain Document objects.
 
     Returns:
         FAISS:
-            A searchable FAISS vector store.
-
-    Raises:
-        ValueError:
-            If no document chunks are provided.
+            Searchable FAISS vector store.
     """
 
-    # Check whether the input contains any chunks.
+    # Validate that document chunks are available.
     if not chunks:
-        raise ValueError("No chunks provided to create the vector store.")
+        raise ValueError("No document chunks provided.")
 
-    # Get the initialized Gemini embedding model.
+    # Retrieve the reusable Gemini embedding model.
     embedding_model = get_embedding_model()
 
-    # Generate embeddings for all chunks and create the FAISS index.
-    vector_store = FAISS.from_texts(
-        texts=chunks,
+    # Generate embeddings and create the FAISS index.
+    # from_documents preserves page and filename metadata.
+    vector_store = FAISS.from_documents(
+        documents=chunks,
         embedding=embedding_model
     )
 
-    # Return the completed vector store.
+    # Return the searchable vector store.
     return vector_store
+
 
 
 def search_similar_chunks(vector_store, query, k=3):
@@ -112,7 +111,7 @@ def save_vector_store(vector_store, path="vector_db"):
     # Save the FAISS index and its associated document data.
     vector_store.save_local(path)
 
-    print(f"Vector store saved successfully at: {path}")
+    print(f"FAISS vector store saved successfully at: {path}")
 
 
 def load_vector_store(path="vector_db"):

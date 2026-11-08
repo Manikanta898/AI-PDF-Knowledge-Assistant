@@ -43,9 +43,6 @@ print("FAISS vector store created successfully!")
 # Step 4: Save the vector store to local storage.
 save_vector_store(vector_store)
 
-print("FAISS vector store saved successfully!")
-
-
 # Step 5: Define a question related to the PDF.
 query = "Which algorithm combines multiple decision trees?"
 
