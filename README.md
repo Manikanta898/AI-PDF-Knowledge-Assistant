@@ -2,19 +2,20 @@
 
 An AI-powered PDF question-answering application built using **Retrieval-Augmented Generation (RAG)**. It allows users to upload PDF documents and ask questions about their content through an interactive Streamlit interface.
 
-The application uses **Google Gemini** to generate answers and **FAISS** to retrieve relevant information from uploaded documents.
+The application uses **Google Gemini** for embedding generation and answer generation, while **FAISS** retrieves relevant information from uploaded documents.
 
 ## Features
 
 - Upload PDF documents through a Streamlit interface.
-- Extract text from PDFs while preserving page-level metadata.
-- Split extracted text into smaller chunks.
-- Generate semantic embeddings using Google's Gemini embedding model.
-- Store and retrieve document embeddings using FAISS.
+- Extract text from PDFs using PyMuPDF.
+- Preserve page-level metadata for source references.
+- Split documents into smaller text chunks.
+- Generate semantic embeddings using Google Gemini.
+- Store and retrieve embeddings using FAISS.
 - Ask questions about uploaded PDF documents.
 - Generate contextual answers using Gemini.
-- Display source references, including PDF filenames and page numbers.
-- Save the FAISS vector store locally for reuse.
+- Display source references with PDF filenames and page numbers.
+- Save and reload the FAISS vector store locally.
 
 ## Tech Stack
 
@@ -30,41 +31,43 @@ The application uses **Google Gemini** to generate answers and **FAISS** to retr
 
 ## Project Architecture
 
+The application follows a Retrieval-Augmented Generation (RAG) architecture.
+
 ```text
-User uploads PDF
-       |
-       v
-   PDF Loader
-       |
-       v
-  Text Extraction
-       |
-       v
-  Text Splitter
-       |
-       v
- Embedding Model
-       |
-       v
-   FAISS Vector Store
-       |
-       v
- User asks a question
-       |
-       v
- Query Embedding
-       |
-       v
- Similarity Search
-       |
-       v
- Relevant Document Chunks
-       |
-       v
- Google Gemini LLM
-       |
-       v
- Contextual Answer + Sources
+             PDF Upload
+                 |
+                 v
+             PDF Loader
+                 |
+                 v
+           Text Extraction
+                 |
+                 v
+            Text Splitter
+                 |
+                 v
+          Embedding Model
+                 |
+                 v
+          FAISS Vector Store
+                 |
+                 |
+          User Question
+                 |
+                 v
+           Query Embedding
+                 |
+                 v
+          Similarity Search
+                 |
+                 v
+       Retrieved Document Chunks
+                 |
+                 v
+          Google Gemini LLM
+                 |
+                 v
+        Answer with References
 ```
 
 ## Project Structure
@@ -74,15 +77,10 @@ AI-PDF-Knowledge-Assistant/
 │
 ├── app.py
 ├── requirements.txt
-├── .env
 ├── .gitignore
 ├── README.md
 │
 ├── data/
-│
-├── uploaded_files/
-│
-├── vector_db/
 │
 ├── utils/
 │   ├── __init__.py
@@ -92,15 +90,23 @@ AI-PDF-Knowledge-Assistant/
 │   ├── vector_store.py
 │   └── chatbot.py
 │
-└── assets/
+├── test.py
+├── test_chatbot.py
+├── test_embeddings.py
+├── test_faiss.py
+├── test_load_faiss.py
+└── test_metadata_faiss.py
 ```
+
+**Note:** The `uploaded_files/` and `vector_db/` directories are generated locally when the application processes documents. They are not required to be committed to the repository.
 
 ## Installation and Setup
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/AI-PDF-Knowledge-Assistant.git
+git clone https://github.com/Manikanta898/AI-PDF-Knowledge-Assistant.git
+
 cd AI-PDF-Knowledge-Assistant
 ```
 
@@ -122,17 +128,17 @@ Activate it on Windows PowerShell:
 pip install -r requirements.txt
 ```
 
-### 4. Configure the Google API key
+### 4. Configure Google API Key
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root directory.
 
 ```env
 GOOGLE_API_KEY=your_google_api_key
 ```
 
-Get an API key through [Google AI Studio](https://aistudio.google.com/).
+Get your API key from [Google AI Studio](https://aistudio.google.com/).
 
-**Important:** Never upload your `.env` file or expose your API key publicly.
+**Important:** Keep your API key private. Never commit your `.env` file to GitHub.
 
 ### 5. Run the application
 
@@ -140,7 +146,7 @@ Get an API key through [Google AI Studio](https://aistudio.google.com/).
 streamlit run app.py
 ```
 
-Open the local URL displayed in the terminal, usually:
+Open the local URL displayed in your terminal, usually:
 
 ```text
 http://localhost:8501
@@ -148,70 +154,64 @@ http://localhost:8501
 
 ## How to Use
 
-1. Launch the Streamlit application.
+1. Run the Streamlit application.
 2. Upload a PDF document.
 3. Click **Process PDF**.
-4. Wait for the document extraction, chunking, embedding, and indexing process to complete.
-5. Enter a question in the chat input.
-6. View the generated answer and its source references.
+4. The application extracts text, creates chunks, generates embeddings, and builds the FAISS index.
+5. Enter your question in the chat input.
+6. View the AI-generated answer and its source references.
 
-## How RAG Works in This Project
+## How RAG Works
 
-The application follows two main stages:
+The application operates in two main stages.
 
-**1. Document Indexing**
+### 1. Document Indexing
 
 - Extract text from the uploaded PDF.
-- Divide the text into smaller chunks.
-- Generate embeddings for the chunks.
-- Store the embeddings and document metadata in FAISS.
+- Split the extracted text into smaller chunks.
+- Generate embeddings for each chunk.
+- Store the embeddings and metadata in FAISS.
 
-**2. Question Answering**
+### 2. Question Answering
 
 - Convert the user's question into an embedding.
-- Retrieve the most similar document chunks from FAISS.
+- Retrieve the three most similar document chunks from FAISS.
 - Pass the retrieved context and question to Gemini.
-- Generate an answer based on the provided document context.
+- Generate a contextual answer using the document content.
 - Display the answer with source references.
 
-## Configuration
+## Model Configuration
 
-The current implementation uses:
-
-| Component | Configuration |
+| Component | Model / Setting |
 |---|---|
-| Embedding model | `models/gemini-embedding-001` |
-| Chat model | `gemini-3.8-flash` |
-| Chunk size | 1000 characters |
-| Chunk overlap | 200 characters |
-| Retrieved chunks | 3 |
-
-These settings can be adjusted in the respective utility modules.
+| Embedding Model | `models/gemini-embedding-001` |
+| Chat Model | `gemini-3.8-flash` |
+| Chunk Size | 1000 characters |
+| Chunk Overlap | 200 characters |
+| Retrieved Chunks | 3 |
 
 ## Current Limitations
 
-- Text extraction is designed for text-based PDFs; scanned PDFs may require OCR.
-- The application currently processes one active document at a time.
-- Retrieval returns the top three nearest chunks without a relevance threshold.
-- Conversation history is retained for display during the current session, but previous questions are not included as context for subsequent answers.
+- Designed primarily for text-based PDFs; scanned documents may require OCR.
+- Processes one active PDF document at a time.
+- Retrieves the top three nearest chunks without a relevance threshold.
+- Previous chat messages are displayed but are not passed as conversational context to Gemini.
 - Advanced document management and production-level error handling are not yet implemented.
 
-## Future Improvements
+## Future Enhancements
 
-- Add OCR support for scanned PDFs.
-- Introduce retrieval relevance filtering.
-- Support multiple PDF documents.
-- Add conversational memory.
-- Improve source citation accuracy.
-- Enhance the user interface and error handling.
-- Deploy the application to a cloud platform.
+- OCR support for scanned PDFs.
+- Retrieval relevance filtering.
+- Support for multiple PDF documents.
+- Conversational memory.
+- Improved source citation accuracy.
+- Enhanced user interface and error handling.
+- Cloud deployment.
 
 ## Author
 
 **Manikanta Tangi**
 
-A project developed to explore Generative AI, Large Language Models, vector databases, and Retrieval-Augmented Generation using Python.
+This project was developed to explore Generative AI, Large Language Models, vector databases, and Retrieval-Augmented Generation using Python.
 
----
-
-*Built with Python, LangChain, FAISS, Google Gemini, and Streamlit.*
+**Technologies:** Python | Streamlit | LangChain | FAISS | Google Gemini
