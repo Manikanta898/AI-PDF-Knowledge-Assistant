@@ -171,7 +171,15 @@ def generate_answer(query, retrieved_docs):
     ])
 
     # Extract the generated answer from the model response.
-    answer = response.content
+    # Extract readable text from Gemini's response.
+    if isinstance(response.content, str):
+        answer = response.content
+    else:
+        answer = "\n".join(
+            block.get("text", "")
+            for block in response.content
+            if isinstance(block, dict) and block.get("type") == "text"
+    )
 
     # Return the answer and its associated source information.
     return {
